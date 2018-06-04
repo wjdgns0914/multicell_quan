@@ -103,9 +103,9 @@ def write_memory(x,cell_info,write_info,choice=0,target_level=W_level,Drift=Fals
     #기본정보, 신경 쓸 필요 없음
     tf.add_to_collection("Original_Weight", x)    # stage1
     filter_shape = x.get_shape().as_list()
-    array_shape = filter_shape+[W_level]
+    array_shape = filter_shape+[FLAGS.num_cell]
     bits = np.ceil(np.log(target_level) / np.log(2.0))
-    if (bits<12) and (Inter[0] or Intra[0]):
+    if(bits<12) and (Inter[0] or Intra[0]) :
         SCALE = scalebybits(bits)
         level_index = tf.to_int32((x * 2 * SCALE + target_level - 1) / 2)
         splited_level_index = funcCustom.split_level(level_index,array_shape=array_shape,num_level=W_level,num_cell=FLAGS.num_cell)
@@ -177,7 +177,7 @@ def write_memory(x,cell_info,write_info,choice=0,target_level=W_level,Drift=Fals
         wr = tf.identity(wr, name='2/Written_resistance')
         rl = tf.to_float(funcCustom.make_index(wr,r_ref))
         converted_level=funcCustom.convert_level(rl,filter_shape=filter_shape,num_level=W_level,num_cell=FLAGS.num_cell)
-        rl = (2*converted_level-(target_level-1))/(2*SCALE)
+        rl = tf.to_float((2*converted_level-(target_level-1))/(2*SCALE))
         # rl =x
         tf.add_to_collection('Binarized_Weight', tr)  # stage2/target_resistance
         tf.add_to_collection('Fluctuated_Weight', wr)  # stage3

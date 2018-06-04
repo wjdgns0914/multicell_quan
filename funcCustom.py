@@ -111,13 +111,13 @@ def split_level(level,array_shape, num_cell=None,num_level=None,mode=0):
                 quotient = (quotient - splited_level[num_cell - i - 1, :]) / num_level
         with tf.control_dependencies([quotient]):
             splited_level=tf.identity(splited_level)
-        print("Original mode")
+        # print("Original mode")
     elif mode==1:
-        print("Simplified mode")
+        # print("Simplified mode")
         raise NotImplementedError
     else:
         raise ValueError("Error! Please select correct mode.")
-    return tf.transpose(splited_level)
+    return tf.to_int32(tf.transpose(splited_level))
 
 def convert_level(splited_level, filter_shape, num_cell=None,num_level=None,mode=0):
     assert num_cell != None and num_level != None, "Please input num_cell and num_level"
@@ -128,4 +128,4 @@ def convert_level(splited_level, filter_shape, num_cell=None,num_level=None,mode
         raise NotImplementedError
     else:
         raise ValueError("Error! Please select correct mode.")
-    return converted_level
+    return tf.to_int32(converted_level)

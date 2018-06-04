@@ -21,21 +21,21 @@ tf.app.flags.DEFINE_integer('patience',20,'# of patience')
 
 # Level2 Parameters which will be sometimes modified.
 # 2-1 Quantization options
-tf.app.flags.DEFINE_integer('W_real_target_level', 64,
+tf.app.flags.DEFINE_integer('W_real_target_level', 14,
                             """Target level.""")
 
 tf.app.flags.DEFINE_integer('Wq_target_level',  2,
                             """Target level.""")
-tf.app.flags.DEFINE_integer("num_cell",2,"The number of the cells we use per weight")
+tf.app.flags.DEFINE_integer("num_cell",1,"The number of the cells we use per weight")
 tf.app.flags.DEFINE_string('level_info_name',"level_info_mygenerate.xlsx","level_info file name")
 # 2-2 Logging data
-tf.app.flags.DEFINE_bool('summary', False,                   #Log only include accuracy data
+tf.app.flags.DEFINE_bool('summary', True,                   #Log only include accuracy data
                            """Record summary.""")
 tf.app.flags.DEFINE_bool('summary2', False,                 #Log also include histogram, weight's scalar graph..etc
                            """Record summary2.""")
 tf.app.flags.DEFINE_integer('choice',0,"""select which type to choose""")
 tf.app.flags.DEFINE_integer('row_choice',0,"""select which type to choose""")
-tf.app.flags.DEFINE_string('Inter_variation_options', "False,False,1,False,1"
+tf.app.flags.DEFINE_string('Inter_variation_options', "True,False,1,False,1"
                            , """Include Cell-to-cell(Inter-cell) variation or not.""")
 tf.app.flags.DEFINE_string('Intra_variation_options', "False,False,1,False,1"
                            , """In-cell(Intra-cell) variation or not""")
@@ -77,7 +77,9 @@ elif (Inter[0]==False) and (Intra[0]==False):
     part_name="1_(Vanila)_"
 else:
     exit()
-num_level = int(np.ceil(np.exp(np.log(FLAGS.W_real_target_level) / FLAGS.num_cell)))
+bits = np.ceil(np.log(FLAGS.W_real_target_level) / np.log(2.0))
+write_read=(bits<12) and (Inter[0] or Intra[0])
+num_level = int(np.ceil(np.exp(np.log(FLAGS.W_real_target_level) / FLAGS.num_cell))) if write_read else FLAGS.W_real_target_level
 tf.app.flags.DEFINE_integer('W_target_level', num_level, """Target level.""")
 
 tf.app.flags.DEFINE_string('checkpoint_dir', './results/'+daystr+'/'+part_name+timestr+'_'+FLAGS.model

@@ -75,9 +75,9 @@ def train(model, data,
     ema_op = ema.apply([loss, accuracy]+tf.trainable_variables())
     tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, ema_op)
     loss_avg = ema.average(loss)
-    # tf.summary.scalar('loss/training', loss_avg)
+    tf.summary.scalar('loss/training', loss_avg)
     accuracy_avg = ema.average(accuracy)
-    # tf.summary.scalar('accuracy/training', accuracy_avg)
+    tf.summary.scalar('accuracy/training', accuracy_avg)
     check_loss = tf.check_numerics(loss, 'model diverged: loss->nan')
     tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, check_loss)
     list_W = tf.get_collection('Original_Weight', scope='L')
@@ -101,14 +101,14 @@ def train(model, data,
     with tf.control_dependencies(clip_op_list):
         train_op = tf.group(*updates_collection)
     print("Make summary for writer...")
-    # if FLAGS.summary:
-    #     funcSummary.add_summaries_scalar([accuracy,loss])
-    #     funcSummary.add_summaries_weight(list_W)
-    #     funcSummary.add_summaries_weight(list_Wbin)
-    #     funcSummary.add_summaries_weight(list_Wfluc)
-    #     funcSummary.add_summaries_weight(list_Wread)
-    #     funcSummary.add_summaries_weight(list_Wprop)
-    # summary_op = tf.summary.merge_all()
+    if FLAGS.summary:
+        funcSummary.add_summaries_scalar([accuracy,loss])
+        funcSummary.add_summaries_weight(list_W)
+        # funcSummary.add_summaries_weight(list_Wbin)
+        # funcSummary.add_summaries_weight(list_Wfluc)
+        funcSummary.add_summaries_weight(list_Wread)
+        funcSummary.add_summaries_weight(list_Wprop)
+    summary_op = tf.summary.merge_all()
     print("Open Session...")
     # Configure options for session
     gpu_options = tf.GPUOptions(allow_growth=True,per_process_gpu_memory_fraction=0.9)
@@ -131,7 +131,7 @@ def train(model, data,
             print('No checkpoint file found')
     saver = tf.train.Saver(max_to_keep=1)
     # saver_best= tf.train.Saver(max_to_keep=1)
-    # summary_writer = tf.summary.FileWriter(log_dir, graph=sess.graph)
+    summary_writer = tf.summary.FileWriter(log_dir, graph=sess.graph)
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
     best_acc = 0
@@ -173,10 +173,10 @@ def train(model, data,
                     sess.run(list_pre_Wbin_op[index],{list_pre_Wbin[index]:value})
                 for index, value in enumerate(pre_iter_info[len(list_Wbin):len(list_Wbin + list_Wfluc)]):
                     sess.run(list_pre_Wfluc_op[index],{list_pre_Wfluc[index]:value})
-            # if j%100==0:
-            #     summary_writer.add_summary(sess.run(summary_op), global_step=sess.run(global_step))
-        # step, acc_value, loss_value, summary = sess.run([global_step, accuracy_avg, loss_avg, summary_op])
-        step, acc_value, loss_value = sess.run([global_step, accuracy_avg, loss_avg])
+            if j%100==0:
+                summary_writer.add_summary(sess.run(summary_op), global_step=sess.run(global_step))
+        step, acc_value, loss_value, summary = sess.run([global_step, accuracy_avg, loss_avg, summary_op])
+        # step, acc_value, loss_value = sess.run([global_step, accuracy_avg, loss_avg])
         funcCustom.magic_print(
             ["%d : " % i + str(count_num[i]) for i in range(10)], " Totral num: ", count_num.sum(),file=file)
         funcCustom.magic_print('Training - Accuracy: %.3f' % acc_value, '  Loss:%.3f' % loss_value, file=file)
@@ -219,12 +219,12 @@ def train(model, data,
                 wb.save(filename=file_name+'.xlsx')
                 break
         funcCustom.magic_print('Best     - Accuracy: %.3f(patience=%d)' % (best_acc, patience), file=file)
-        # summary_out = tf.Summary()
-        # summary_out.ParseFromString(summary)
-        # summary_out.value.add(tag='accuracy/test', simple_value=test_acc)
-        # summary_out.value.add(tag='loss/test', simple_value=test_loss)
-        # summary_writer.add_summary(summary_out, step)
-        # summary_writer.flush()
+        summary_out = tf.Summary()
+        summary_out.ParseFromString(summary)
+        summary_out.value.add(tag='accuracy/test', simple_value=test_acc)
+        summary_out.value.add(tag='loss/test', simple_value=test_loss)
+        summary_writer.add_summary(summary_out, step)
+        summary_writer.flush()
 
 
     # When done, ask the threads to stop.
@@ -232,7 +232,7 @@ def train(model, data,
     coord.request_stop()
     coord.join(threads)
     coord.clear_stop()
-    # summary_writer.close()
+    summary_writer.close()
 """
 설명2:
 1)what is the argv
