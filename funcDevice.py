@@ -52,6 +52,7 @@ if W_level<2**10:
             std_b = 4.463 * 0.1824
             std_c = 2.713 * 0.0354
             std_d = 2.509e+04 * 0.7708
+            # std_a,std_b,std_c,std_d=[0,0,0,0]
             # stdofstd is free, 0일 수도 있고 아닐 수도 있다.
             if Inter[1]:
                 print("To be continued..Sorry!")
@@ -86,7 +87,8 @@ if W_level<2**10:
     funcCustom.magic_print(
         "Dataset : ", FLAGS.dataset, "\nModel : ", FLAGS.model, "\nLR : ", FLAGS.learning_rate, "\nbatch_size : ", FLAGS.batch_size, file=file)
     funcCustom.magic_print(
-        "W_level : ", FLAGS.W_target_level, "\nWq_level", FLAGS.Wq_target_level,"\nPatience : ", FLAGS.patience, file=file)
+        "W_level : ", FLAGS.W_real_target_level,"\nlevel_per_cell:", FLAGS.W_target_level, "\nWq_level", FLAGS.Wq_target_level, file=file)
+    funcCustom.magic_print("Num_cell : ",FLAGS.num_cell,"\nPotential_level",FLAGS.W_target_level**FLAGS.num_cell,"\nPatience",FLAGS.patience,file=file)
     funcCustom.magic_print("Inter=",Inter,file=file)
     funcCustom.magic_print("Intra=",Intra,file=file)
     funcCustom.magic_print(

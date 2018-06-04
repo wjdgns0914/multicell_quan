@@ -178,6 +178,9 @@ def write_memory(x,cell_info,write_info,choice=0,target_level=W_level,Drift=Fals
         rl = tf.to_float(funcCustom.make_index(wr,r_ref))
         converted_level=funcCustom.convert_level(rl,filter_shape=filter_shape,num_level=W_level,num_cell=FLAGS.num_cell)
         rl = tf.to_float((2*converted_level-(target_level-1))/(2*SCALE))
+        tf.add_to_collection("level1",level_index)
+        tf.add_to_collection("level2",splited_level_index)
+        tf.add_to_collection("level3",converted_level)
         # rl =x
         tf.add_to_collection('Binarized_Weight', tr)  # stage2/target_resistance
         tf.add_to_collection('Fluctuated_Weight', wr)  # stage3

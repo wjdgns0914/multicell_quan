@@ -26,7 +26,7 @@ tf.app.flags.DEFINE_integer('W_real_target_level', 14,
 
 tf.app.flags.DEFINE_integer('Wq_target_level',  2,
                             """Target level.""")
-tf.app.flags.DEFINE_integer("num_cell",1,"The number of the cells we use per weight")
+tf.app.flags.DEFINE_integer("num_cell",2,"The number of the cells we use per weight")
 tf.app.flags.DEFINE_string('level_info_name',"level_info_mygenerate.xlsx","level_info file name")
 # 2-2 Logging data
 tf.app.flags.DEFINE_bool('summary', True,                   #Log only include accuracy data

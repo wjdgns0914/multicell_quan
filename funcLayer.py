@@ -2,6 +2,7 @@ from params import *
 import tensorflow as tf
 import funcDevice
 import funcQuantize
+W_real_level=FLAGS.W_real_target_level
 W_level=FLAGS.W_target_level
 Wq_level=FLAGS.Wq_target_level
 choice=FLAGS.choice
@@ -20,7 +21,7 @@ def BinarizedAffine(nOutputPlane, bias=True, name=None, reuse=None,bin=False,flu
             filter_shape=w.get_shape().as_list()
             array_shape = filter_shape + [FLAGS.num_cell]
             write_info,cell_info=funcDevice.generate_cell(array_shape=array_shape,W_level=W_level)
-            w_written = tf.assign(w, funcQuantize.write_memory(w,cell_info=cell_info,write_info=write_info,target_level=W_level))  #1)w는 W_level로 양자화되어있다고 가정한다. 2)write_memory에서의 target_level은 w를 양자화한 target_level과 같아야한다.
+            w_written = tf.assign(w, funcQuantize.write_memory(w,cell_info=cell_info,write_info=write_info,target_level=W_real_level))  #1)w는 W_level로 양자화되어있다고 가정한다. 2)write_memory에서의 target_level은 w를 양자화한 target_level과 같아야한다.
             with tf.control_dependencies([w_written]):
                 w_propagated = tf.identity(funcQuantize.quantize_W(w, target_level=Wq_level), name='4/Quantized_weight')
             tf.add_to_collection('Propagated_Weight',w_propagated)

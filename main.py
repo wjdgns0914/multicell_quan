@@ -11,6 +11,7 @@ import funcSummary
 
 
 FLAGS = tf.app.flags.FLAGS
+
 # tf.logging.set_verbosity(FLAGS.log)
 if FLAGS.dataset=='cifar10':
     steps=round(50000/FLAGS.batch_size)*20
@@ -34,7 +35,6 @@ def quantizeGrads(Grad_and_vars,target_level=FLAGS.W_target_level):
     return Grad_and_vars
 
 ## model을 data로 training 시켜주는 함수
-
 def train(model, data,
           batch_size=128,
           learning_rate=FLAGS.learning_rate,
@@ -62,7 +62,7 @@ def train(model, data,
     # # * 이런 식으로 gradient  뽑아서  수정가능
     optimizer=tf.train.GradientDescentOptimizer(1)
     grads = optimizer.compute_gradients(loss)
-    gradTrainBatch_quantize = quantizeGrads(grads,FLAGS.W_target_level)
+    gradTrainBatch_quantize = quantizeGrads(grads,FLAGS.W_real_target_level)
     opt = optimizer.apply_gradients(gradTrainBatch_quantize, global_step=global_step)
     if FLAGS.W_target_level>2**10:
         opt = tf.contrib.layers.optimize_loss(loss, global_step, learning_rate, optimizer='Adam',
@@ -94,18 +94,24 @@ def train(model, data,
     clip_op_list=[]
     with tf.control_dependencies([opt]):
         for ww in list_W:
-            clip_op=tf.assign(ww, funcQuantize.clip(ww, FLAGS.W_target_level))
+            clip_op=tf.assign(ww, funcQuantize.clip(ww, FLAGS.W_real_target_level))
             clip_op_list+=[clip_op]
     updates_collection = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     # updates_collection은 여러 operation으로 이루어진 리스트고, train_op는 그 operation들을 실행하는 operation이다.
     with tf.control_dependencies(clip_op_list):
         train_op = tf.group(*updates_collection)
     print("Make summary for writer...")
+    list_level1 = tf.get_collection("level1")
+    list_level2 = tf.get_collection("level2")
+    list_level3 = tf.get_collection("level3")
     if FLAGS.summary:
         funcSummary.add_summaries_scalar([accuracy,loss])
         funcSummary.add_summaries_weight(list_W)
         # funcSummary.add_summaries_weight(list_Wbin)
         # funcSummary.add_summaries_weight(list_Wfluc)
+        funcSummary.add_summaries_weight(list_level1)
+        funcSummary.add_summaries_weight(list_level3)
+
         funcSummary.add_summaries_weight(list_Wread)
         funcSummary.add_summaries_weight(list_Wprop)
     summary_op = tf.summary.merge_all()
